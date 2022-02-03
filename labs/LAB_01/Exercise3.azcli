@@ -1,0 +1,27 @@
+# read -sp "Password: " AZ_PASS
+# echo 
+# az login -u "az500@az500breidenstein.onmicrosoft.com" -p $AZ_PASS
+
+# LOGIN
+az login --username "az500@az500breidenstein.onmicrosoft.com"
+
+# get domain name
+DOMAINNAME=$(az ad signed-in-user show --query 'userPrincipalName' | cut -d '@' -f 2 | sed 's/\"//')
+
+## Create Dylan
+# read Password
+read -sp "Dylans Password: " DYLAN_PASS
+echo 
+az ad user create --display-name "Dylan Williams" --password $DYLAN_PASS --user-principal-name Dylan@$DOMAINNAME
+az ad user list --output table
+
+## Create Group and add Dylan
+az ad group create --display-name "Service Desk" --mail-nickname "ServiceDesk"
+az ad group list -o table
+
+# Add Dylan to Group
+USER=$(az ad user list --filter "displayname eq 'Dylan Williams'")
+OBJECTID=$(echo $USER | jq '.[].objectId' | tr -d '"')
+
+az ad group member add --group "Service Desk" --member-id $OBJECTID
+az ad group member list --group "Service Desk"
